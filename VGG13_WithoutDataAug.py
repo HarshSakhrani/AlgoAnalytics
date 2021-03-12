@@ -297,6 +297,8 @@ def train_model(model,patience,epochs):
 
 model,avgTrainLoss,avgValidLoss,avgTrainAcc,avgValidAcc=train_model(model,3,10)
 
+torch.save({'model_state_dict': model.state_dict()},"VGG13_DataAug_PreTrained.pt")
+
 loss_train = avgTrainLoss
 loss_val = avgValidLoss
 epochs = range(1,11)
@@ -585,6 +587,8 @@ plt.xlabel('Epochs')
 plt.ylabel('Accuracy')
 plt.legend()
 plt.savefig('fineTuningAcc.png', bbox_inches='tight')
+
+torch.save({'model_state_dict': model.state_dict()},"VGG13_DataAug_FineTuned.pt")
 
 def checkTripletMetrics(loader,model):
   

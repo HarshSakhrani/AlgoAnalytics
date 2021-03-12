@@ -1,6 +1,8 @@
 import zipfile
 
-with zipfile.ZipFile("wav.zip", 'r') as zip_ref:
-  zip_ref.extractall("/home/Unzipped")
+with zipfile.ZipFile("/root/wav.zip", 'r') as zip_ref:
+  zip_ref.extractall("/root/Unzipped")
 
 
+
+#/root/Unzipped/wav/.....
