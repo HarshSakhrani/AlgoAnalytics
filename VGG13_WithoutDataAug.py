@@ -160,7 +160,7 @@ class CustomizedVGG(nn.Module):
     return nn.Sequential(*layers)
 
 
-model=CustomizedVGG(noClasses=80)
+model=CustomizedVGG(noClasses=763)
 model.to(device)
 softmaxLoss = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), lr=0.00001)
