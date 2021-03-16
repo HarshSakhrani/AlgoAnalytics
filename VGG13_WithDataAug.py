@@ -30,8 +30,8 @@ from torch.utils.data import WeightedRandomSampler
 
 pd.set_option('display.max_colwidth', -1)
 
-dfClassification=pd.read_csv("/AlgoAnalytics/SubsetAudioSamples_Half.csv",index_col=0)
-dfTriplet=pd.read_csv("/AlgoAnalytics/SubsetTriplets_Half.csv",index_col=0)
+dfClassification=pd.read_csv("/AlgoAnalytics/80Classes/VastAIClassification_80Samples.csv",index_col=0)
+dfTriplet=pd.read_csv("/AlgoAnalytics/80Classes/VastAiTriplets_80classes.csv",index_col=0)
 dfClassification=dfClassification.sample(frac=1).reset_index(drop=True) 
 dfTriplet=dfTriplet.sample(frac=1).reset_index(drop=True)
 
@@ -708,8 +708,10 @@ def checkTripletMetrics(loader,model):
   total=0
   model.eval()
 
+
   with torch.no_grad():
     for anchor,positive,negative in loader:
+
       anchor=anchor.to(device=device)
       positive=positive.to(device=device)
       negative=negative.to(device=device)
@@ -718,9 +720,10 @@ def checkTripletMetrics(loader,model):
       posEmb=model(positive,preTrainingFlag=0)
       negEmb=model(negative,preTrainingFlag=0)      
 
-      tempPreds=(( (temp1-temp2).pow(2).sum(1) < (temp1-temp3).pow(2).sum(1) ).tolist())
+      tempPreds=(( (anchorEmb-posEmb).pow(2).sum(1) < (anchorEmb-negEmb).pow(2).sum(1) ).tolist())
       completeTargets.append([1]*len(anchor))
       completePreds.append([int(elem) for elem in tempPreds])
+
 
     completeTargetsFlattened=[item for sublist in completeTargets for item in sublist]
     completePredsFlattened=[item for sublist in completePreds for item in sublist]
@@ -730,6 +733,7 @@ def checkTripletMetrics(loader,model):
 
     cm = ConfusionMatrix(actual_vector=completeTargetsFlattened, predict_vector=completePredsFlattened)
   return cm
+
 
 
 tripletCM=checkTripletMetrics(tripletTestLoader,model)
