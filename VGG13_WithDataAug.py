@@ -30,8 +30,8 @@ from torch.utils.data import WeightedRandomSampler
 
 pd.set_option('display.max_colwidth', -1)
 
-dfClassification=pd.read_csv("/AlgoAnalytics/80Classes/VastAIClassification_80Samples.csv",index_col=0)
-dfTriplet=pd.read_csv("/AlgoAnalytics/80Classes/VastAiTriplets_80classes.csv",index_col=0)
+dfClassification=pd.read_csv("80Classes/VastAIClassification_80Samples.csv",index_col=0)
+dfTriplet=pd.read_csv("80Classes/VastAiTriplets_80classes.csv",index_col=0)
 dfClassification=dfClassification.sample(frac=1).reset_index(drop=True) 
 dfTriplet=dfTriplet.sample(frac=1).reset_index(drop=True)
 
@@ -122,9 +122,9 @@ classificationTrainDataset=SpectogramImgClassificationTrainDataset(dataframe=dfC
 classificationTestDataset=SpectogramImgClassificationTestDataset(dataframe=dfClassificationTest)
 classificationValDataset=SpectogramImgClassificationTestDataset(dataframe=dfClassificationVal)
 
-classificationTrainLoader=torch.utils.data.DataLoader(classificationTrainDataset,batch_size=8,sampler=trainSampler)
-classificationTestLoader=torch.utils.data.DataLoader(classificationTestDataset,batch_size=8,shuffle=True)
-classificationValLoader=torch.utils.data.DataLoader(classificationValDataset,batch_size=8,shuffle=True)
+classificationTrainLoader=torch.utils.data.DataLoader(classificationTrainDataset,batch_size=4,sampler=trainSampler)
+classificationTestLoader=torch.utils.data.DataLoader(classificationTestDataset,batch_size=4,shuffle=True)
+classificationValLoader=torch.utils.data.DataLoader(classificationValDataset,batch_size=4,shuffle=True)
 
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -520,12 +520,15 @@ tripletTrainDataset=SpectogramImgTripletTrainDataset(dataframe=dfTripletTrain)
 tripletTestDataset=SpectogramImgTripletTestDataset(dataframe=dfTripletTest)
 tripletValDataset=SpectogramImgTripletTestDataset(dataframe=dfTripletVal)
 
-tripletTrainLoader=torch.utils.data.DataLoader(tripletTrainDataset,batch_size=8,shuffle=True)
-tripletTestLoader=torch.utils.data.DataLoader(tripletTestDataset,batch_size=8,shuffle=True)
-tripletValLoader=torch.utils.data.DataLoader(tripletValDataset,batch_size=8,shuffle=True)
+tripletTrainLoader=torch.utils.data.DataLoader(tripletTrainDataset,batch_size=4,shuffle=True)
+tripletTestLoader=torch.utils.data.DataLoader(tripletTestDataset,batch_size=4,shuffle=True)
+tripletValLoader=torch.utils.data.DataLoader(tripletValDataset,batch_size=4,shuffle=True)
 
 optimizer = optim.Adam(model.parameters(), lr=0.00001)
 tripletLoss=nn.TripletMarginLoss()  
+
+def Average(lst): 
+    return sum(lst) / len(lst) 
 
 def Average(lst): 
     return sum(lst) / len(lst) 
@@ -553,95 +556,95 @@ def train_model(model,patience,epochs,avgTrainLoss,avgValidLoss,avgTrainAcc,avgV
 
     model.train()
     print("Training.....")
-    try:
-      for batch_idx, (anchor,positive,negative) in enumerate(tripletTrainLoader):
+    #try:
+    for batch_idx, (anchor,positive,negative) in enumerate(tripletTrainLoader):
 
 
-        trainBatchCount=trainBatchCount+1
+      trainBatchCount=trainBatchCount+1
 
-        anchor=anchor.to(device=device)
-        positive=positive.to(device=device)
-        negative=negative.to(device=device)
+      anchor=anchor.to(device=device)
+      positive=positive.to(device=device)
+      negative=negative.to(device=device)
 
-        optimizer.zero_grad()
+      optimizer.zero_grad()
 
-        anchorEmb=model(anchor,preTrainingFlag=0)
-        posEmb=model(positive,preTrainingFlag=0)
-        negEmb=model(negative,preTrainingFlag=0)
-        
-        loss=tripletLoss(anchorEmb,posEmb,negEmb)
-        
-        loss.backward()
+      anchorEmb=model(anchor,preTrainingFlag=0)
+      posEmb=model(positive,preTrainingFlag=0)
+      negEmb=model(negative,preTrainingFlag=0)
+      
+      loss=tripletLoss(anchorEmb,posEmb,negEmb)
+      
+      loss.backward()
 
-        optimizer.step()
+      optimizer.step()
 
-        trainLosses.append(float(loss))
+      trainLosses.append(float(loss))
 
-        
-        correct=0
-        total=0
-        total=len(anchor)
+      
+      correct=0
+      total=0
+      total=len(anchor)
+
+      #print("Targets:-",targets)
+
+      #predictions=torch.argmax(scores,dim=1)
+
+      #print("Predictions:-",predictions)
+
+      correct = ( (anchorEmb-posEmb).pow(2).sum(1) < (anchorEmb-negEmb).pow(2).sum(1) ).sum()
+      acc=float((correct/float(total))*100)
+
+      trainAcc.append(acc)
+
+      if ((trainBatchCount%200)==0):
 
         #print("Targets:-",targets)
-
-        #predictions=torch.argmax(scores,dim=1)
-
         #print("Predictions:-",predictions)
 
-        correct = ( (anchorEmb-posEmb).pow(2).sum(1) < (anchorEmb-negEmb).pow(2).sum(1) ).sum()
-        acc=float((correct/float(total))*100)
+        print('Loss: {}  Accuracy: {} %'.format(loss.data, acc))
 
-        trainAcc.append(acc)
-
-        if ((trainBatchCount%200)==0):
-
-          #print("Targets:-",targets)
-          #print("Predictions:-",predictions)
-
-          print('Loss: {}  Accuracy: {} %'.format(loss.data, acc))
-
-    except:
-      continue
+    #except:
+      #continue
 
     model.eval()
     print("Validating.....")
-    try:
-      for anchor,positive,negative in tripletValLoader:
+    #try:
+    for anchor,positive,negative in tripletValLoader:
 
-        testBatchCount=testBatchCount+1
+      testBatchCount=testBatchCount+1
 
-        anchor=anchor.to(device=device)
-        positive=positive.to(device=device)
-        negative=negative.to(device=device)
+      anchor=anchor.to(device=device)
+      positive=positive.to(device=device)
+      negative=negative.to(device=device)
 
-        anchorEmb=model(anchor,preTrainingFlag=0)
-        posEmb=model(positive,preTrainingFlag=0)
-        negEmb=model(negative,preTrainingFlag=0)
+      anchorEmb=model(anchor,preTrainingFlag=0)
+      posEmb=model(positive,preTrainingFlag=0)
+      negEmb=model(negative,preTrainingFlag=0)
 
-        loss=tripletLoss(anchorEmb,posEmb,negEmb)
+      loss=tripletLoss(anchorEmb,posEmb,negEmb)
 
-        validLosses.append(float(loss))
+      validLosses.append(float(loss))
 
-        testCorrect=0
-        testTotal=0
+      testCorrect=0
+      testTotal=0
 
-        #_,predictions=scores.max(1)
+      #_,predictions=scores.max(1)
 
-        testCorrect = ( (anchorEmb-posEmb).pow(2).sum(1) < (anchorEmb-negEmb).pow(2).sum(1) ).sum()
-        testTotal=len(anchor)
+      testCorrect = ( (anchorEmb-posEmb).pow(2).sum(1) < (anchorEmb-negEmb).pow(2).sum(1) ).sum()
+      testTotal=len(anchor)
 
-        testAcc=float((testCorrect/float(testTotal))*100)
+      testAcc=float((testCorrect/float(testTotal))*100)
 
-        validAcc.append(testAcc)
+      validAcc.append(testAcc)
 
-        if ((testBatchCount%200)==0):
+      if ((testBatchCount%200)==0):
 
-          #print("Targets:-",targets)
-          #print("Predictions:-",predictions)
+        #print("Targets:-",targets)
+        #print("Predictions:-",predictions)
 
-          print('Loss: {}  Accuracy: {} %'.format(float(loss), testAcc))
-    except:
-      continue
+        print('Loss: {}  Accuracy: {} %'.format(float(loss), testAcc))
+    #except:
+      #continue
     
 
     trainLoss=Average(trainLosses)
