@@ -363,7 +363,7 @@ plt.title('Training and Validation loss(Pre-Training)')
 plt.xlabel('Epochs')
 plt.ylabel('Loss')
 plt.legend()
-plt.savefig('preTrainingLoss.png', bbox_inches='tight')
+plt.savefig('attention_preTrainingLoss.png', bbox_inches='tight')
 plt.close()
 #plt.show()
 
@@ -376,7 +376,7 @@ plt.title('Training and Validation Accuracy(Pre-Training)')
 plt.xlabel('Epochs')
 plt.ylabel('Accuracy')
 plt.legend()
-plt.savefig('preTrainingAcc.png', bbox_inches='tight')
+plt.savefig('attention_preTrainingAcc.png', bbox_inches='tight')
 plt.close()
 
 def checkClassificationMetrics(loader,model):
@@ -413,11 +413,10 @@ def checkClassificationMetrics(loader,model):
 
 softmaxCM=checkClassificationMetrics(classificationTestLoader,model)
 
-f=open("softmaxResults.txt","a")
+f=open("attention_softmaxResults.txt","a")
 f.write(str(softmaxCM))
 f.close()
 
-torch.save({'model_state_dict': model.state_dict()},"VGG13_DataAug_PreTrained.pt")
 
 print("=================================================================================================================================")
 print("Fine-Tuning")
@@ -701,7 +700,7 @@ plt.title('Training and Validation loss(FineTuning)')
 plt.xlabel('Epochs')
 plt.ylabel('Loss')
 plt.legend()
-plt.savefig('fineTuningLoss.png', bbox_inches='tight')
+plt.savefig('attention_fineTuningLoss.png', bbox_inches='tight')
 plt.close()
 
 loss_train = avgTrainAcc
@@ -713,11 +712,9 @@ plt.title('Training and Validation Accuracy(FineTuning)')
 plt.xlabel('Epochs')
 plt.ylabel('Accuracy')
 plt.legend()
-plt.savefig('fineTuningAcc.png', bbox_inches='tight')
+plt.savefig('attention_fineTuningAcc.png', bbox_inches='tight')
 plt.close()
 
-
-torch.save({'model_state_dict': model.state_dict()},"VGG13_DataAug_FineTuned.pt")
 
 def checkTripletMetrics(loader,model):
   
@@ -758,7 +755,7 @@ def checkTripletMetrics(loader,model):
 
 tripletCM=checkTripletMetrics(tripletTestLoader,model)
 
-f=open("tripletResults.txt","a")
+f=open("attention_tripletResults.txt","a")
 f.write(str(tripletCM))
 f.close()
 
